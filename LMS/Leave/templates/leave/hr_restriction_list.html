@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>HR: List of Restrictions</h1>
+  <p><a href="{% url 'hr_restriction_create' %}">Create New Restriction</a></p>
+  <table border="1" cellspacing="0" cellpadding="5">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Parameters</th>
+        <th>Category</th>
+        <th>Location</th>
+        <!-- Future: Add edit/delete actions -->
+      </tr>
+    </thead>
+    <tbody>
+      {% for restr in restrictions %}
+        <tr>
+          <td>{{ restr.id }}</td>
+          <td>{{ restr.__class__.__name__ }}</td>
+          <td>{{ restr.name }}</td>
+          <td>{{ restr.description }}</td>
+          <td>{{ restr.parameters }}</td>
+          <td>{{ restr.category }}</td>
+          <td>{{ restr.location }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7">No restrictions found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
