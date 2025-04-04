@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Reject Vacation Request</h1>
+  <p>Provide an explanation for rejecting the following request:</p>
+  <p><strong>{{ request_obj.title }}</strong></p>
+  <p>From: {{ request_obj.start_date }} to {{ request_obj.end_date }}</p>
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <label for="explanation">Explanation:</label><br>
+    <textarea name="explanation" id="explanation" rows="4" cols="50"></textarea><br><br>
+    <button type="submit">Confirm Rejection</button>
+    <a href="{% url 'home' %}">Cancel</a>
+  </form>
+{% endblock %}
