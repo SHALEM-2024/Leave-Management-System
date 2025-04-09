@@ -49,7 +49,7 @@ class Category(models.Model):
 class Grant(models.Model):
     employee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='grants')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='grants')
-    allocated_hours = models.FloatField()  # Total hours available for this grant.
+    allocated_hours = models.IntegerField()  # Total hours available for this grant.
     expiration_date = models.DateField(blank=True, null=True)
     
     def __str__(self):

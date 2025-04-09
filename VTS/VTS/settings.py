@@ -134,3 +134,4 @@ EMAIL_HOST_USER = 'your_email@example.com'  # Your email address
 EMAIL_HOST_PASSWORD = 'your_email_password' # Your email password or app-specific password
 DEFAULT_FROM_EMAIL = 'no-reply@example.com' # Default "from" email address for outgoing emails
 
+LOGIN_REDIRECT_URL = '/leave/'

@@ -9,7 +9,7 @@ from .models import DateExclusionRestriction, AdjacentDayRestriction, Consecutiv
 class RequestForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['category', 'title', 'description', 'start_date', 'end_date', 'hours_per_day']
+        fields = ['grant', 'category', 'title', 'description', 'start_date', 'end_date', 'hours_per_day']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),

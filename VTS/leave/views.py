@@ -118,7 +118,7 @@ def edit_request(request, request_id):
     Allows an employee to edit a pending vacation request.
     The employee may update details like the title, description, or dates.
     """
-    req_obj = get_object_or_404(Request, id=request_id, employee=request.user, status='submitted')
+    req_obj =  get_object_or_404(Request, id=request_id, employee=request.user, status='submitted')
     if request.method == 'POST':
         form = RequestForm(request.POST, instance=req_obj)
         if form.is_valid():
