@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 
 {% block content %}
   <h1>HR: List of Restrictions</h1>
@@ -20,7 +21,7 @@
       {% for restr in restrictions %}
         <tr>
           <td>{{ restr.id }}</td>
-          <td>{{ restr.__class__.__name__ }}</td>
+          <td>{{ restr|get_class_name }}</td>
           <td>{{ restr.name }}</td>
           <td>{{ restr.description }}</td>
           <td>{{ restr.parameters }}</td>

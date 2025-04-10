@@ -2,8 +2,11 @@ import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Request, User
+from .models import Request, User, Grant, UserLeaveBalance
 from .forms import RequestForm
+
+from django.contrib.auth import login
+from .forms import CustomUserCreationForm
 
 # For Manager functionality
 from django.http import HttpResponse
@@ -65,19 +68,52 @@ def request_editor(request):
     Displays a form for creating a new vacation request.
     """
     if request.method == 'POST':
-        form = RequestForm(request.POST)
+        form = RequestForm(request.POST, user=request.user)
         if form.is_valid():
             new_request = form.save(commit=False)
             new_request.employee = request.user
+
+            # Try to retrieve the existing leave balance, or create one if it doesn't exist.
+            balance, created = UserLeaveBalance.objects.get_or_create(
+                user=request.user, 
+                category=new_request.category,
+                defaults={}  # We'll update the defaults below.
+            )
+
+            if created:
+                # Since this is a new balance record, look up the matching grant.
+                try:
+                    grant = Grant.objects.get(employee_category=request.user.role, category=new_request.category)
+                except Grant.DoesNotExist:
+                    return HttpResponse("No grant exists for this user and category.", status=400)
+                # Initialize the balance from the grant.
+                balance.allocated_hours = grant.allocated_hours
+                balance.remaining_hours = grant.allocated_hours
+                balance.save()
+
+            # Calculate total requested hours:
+            days = abs(new_request.end_date - new_request.start_date).days + 1
+            requested_hours = days * new_request.hours_per_day
+
+            if balance.remaining_hours < requested_hours:
+                return HttpResponse("Insufficient leave balance.", status=400)
+
+            # Save the request
             new_request.status = 'submitted'
             new_request.submitted_at = timezone.now()
             new_request.save()
-            # (Optional: Trigger email notification to the manager(s) here)
+
+            # Deduct hours from the user’s leave balance.
+            balance.remaining_hours -= requested_hours
+            balance.save()
+
             return redirect('home')
     else:
-        form = RequestForm()
+        form = RequestForm(user=request.user)
     
     return render(request, 'vts/request_editor.html', {'form': form})
+
+
 
 @login_required
 def withdraw_request(request, request_id):
@@ -264,4 +300,15 @@ def hr_restriction_create(request):
     
     return render(request, 'vts/hr_restriction_form.html', {'form': form})
 
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Optionally, automatically log the user in after registration:
+            login(request, user)
+            return redirect('home')  # Redirect to your home page or another success page.
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})
 

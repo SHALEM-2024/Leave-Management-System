@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 import datetime
+from django.core.exceptions import ValidationError
+
 
 # ---------------------------
 # Custom User Model (Employee)
@@ -47,18 +49,52 @@ class Category(models.Model):
 # Represents the leave time available to an employee.
 # ---------------------------
 class Grant(models.Model):
-    employee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='grants')
+
+    employee_category = models.CharField(max_length=20,choices=User.ROLE_CHOICES, default='employee',help_text="Select the employee category to which this grant applies.")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='grants')
     allocated_hours = models.IntegerField()  # Total hours available for this grant.
     expiration_date = models.DateField(blank=True, null=True)
     
     def __str__(self):
-        return f"{self.employee.username} - {self.category.name} Grant"
+        return f"{self.employee_category} - {self.category.name} Grant"
+
+
+class UserLeaveBalance(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leave_balances')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='user_leave_balances')
+    allocated_hours = models.IntegerField(
+        help_text="Total allocated leave hours for this category.",
+        blank=True, null=True  # Allow blank initially; will be set in save()
+    )
+    remaining_hours = models.IntegerField(
+        help_text="Remaining leave hours for this category.",
+        blank=True, null=True  # Allow blank initially; will be set in save()
+    )
+
+    class Meta:
+        unique_together = ('user', 'category')
+
+    def save(self, *args, **kwargs):
+        # When creating a new UserLeaveBalance, if the balance is not yet set,
+        # look up the matching Grant based on the user's role and the category.
+        if self.pk is None:
+            try:
+                grant = Grant.objects.get(employee_category=self.user.role, category=self.category)
+            except Grant.DoesNotExist:
+                raise ValueError("No grant exists for this user and category. Please contact HR.")
+            # Set the allocated and remaining hours from the Grant.
+            self.allocated_hours = grant.allocated_hours
+            self.remaining_hours = grant.allocated_hours
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.category.name}: {self.remaining_hours}/{self.allocated_hours}"
 
 # ---------------------------
 # Request Model
 # Represents a vacation time request.
 # ---------------------------
+
 class Request(models.Model):
     STATUS_CHOICES = [
         ('created', 'Created'),
@@ -71,19 +107,46 @@ class Request(models.Model):
     ]
     
     employee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requests')
-    grant = models.ForeignKey(Grant, on_delete=models.CASCADE, related_name='requests')
+    #grant = models.ForeignKey(Grant, on_delete=models.CASCADE, related_name='requests')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='requests')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
-    # Number of hours requested per day (could also be total hours based on your needs).
     hours_per_day = models.FloatField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created')
     created_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(blank=True, null=True)
     
+    def clean(self):
+        # First, allow any built-in validations to run
+        super().clean()
+        
+        # Ensure the end_date is not before the start_date
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValidationError({'end_date': "End date cannot be before start date."})
+        
+        # Check for overlapping requests for the same employee.
+        # An overlap occurs if: new.start_date <= existing.end_date AND new.end_date >= existing.start_date.
+        overlapping_requests = Request.objects.filter(
+            employee=self.employee,
+            start_date__lte=self.end_date,
+            end_date__gte=self.start_date
+        )
+        # When updating an existing request, exclude itself from the check.
+        if self.pk:
+            overlapping_requests = overlapping_requests.exclude(pk=self.pk)
+        
+        if overlapping_requests.exists():
+            raise ValidationError("There is an existing leave request that overlaps with these dates. Please delete or modify the existing request first.")
+    
+    def save(self, *args, **kwargs):
+        # Enforce validation before saving
+        self.full_clean()
+        super().save(*args, **kwargs)
+        
     def __str__(self):
+        username = self.employee.username if self.employee else "Unassigned"
         return f"{self.employee.username} Request: {self.title} ({self.status})"
 
 # ---------------------------

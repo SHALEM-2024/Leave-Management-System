@@ -15,4 +15,5 @@ urlpatterns = [
     path('hr/restrictions/', views.hr_restriction_list, name='hr_restriction_list'),
     path('hr/restrictions/create/', views.hr_restriction_create, name='hr_restriction_create'),
     # Future: paths for editing and deleting restrictions can be added.
+    path('register/', views.register, name='register'), 
 ]
