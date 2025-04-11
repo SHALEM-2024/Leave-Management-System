@@ -5,7 +5,7 @@ from .models import User
 
 # For HR_clerk
 from django import forms
-from .models import DateExclusionRestriction, AdjacentDayRestriction, ConsecutiveDayRestriction, CoworkerRestriction, DayOfWeekRestriction, PeriodLimitRestriction
+from .models import DateExclusionRestriction, AdjacentDayRestriction, ConsecutiveDayRestriction, CoworkerRestriction, DayOfWeekRestriction, PeriodLimitRestriction, Category, Restriction, Location
 
 # Form for Employee leave request
 
@@ -67,12 +67,22 @@ class RestrictionForm(forms.Form):
     restriction_type = forms.ChoiceField(choices=RESTRICTION_TYPE_CHOICES, label="Restriction Type")
     name = forms.CharField(max_length=255)
     description = forms.CharField(widget=forms.Textarea, required=False)
-    # Optional: allow selecting Category and Location to which the restriction applies.
-    category = forms.CharField(max_length=100, required=False, help_text="Enter category ID or leave blank if not applicable")
-    location = forms.CharField(max_length=100, required=False, help_text="Enter location ID or leave blank if not applicable")
-    # For simplicity, we capture parameters as a JSON string.
-    parameters = forms.CharField(widget=forms.Textarea(attrs={'rows':4, 'cols':50}), help_text="Enter parameters as a JSON object", required=False)
-
+    # For multiple selection:
+    category = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
+        required=False,
+        help_text="Select one or more categories to which this restriction applies"
+    )
+    location = forms.ModelMultipleChoiceField(
+        queryset=Location.objects.all(),
+        required=False,
+        help_text="Select one or more locations to which this restriction applies"
+    )
+    parameters = forms.CharField(
+        widget=forms.Textarea(attrs={'rows':4, 'cols':50}),
+        help_text="Enter parameters as a JSON object",
+        required=False
+    )
 
 
 class CustomUserCreationForm(UserCreationForm):

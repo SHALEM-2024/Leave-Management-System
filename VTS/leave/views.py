@@ -288,12 +288,14 @@ def hr_restriction_create(request):
                 return HttpResponse("Unknown restriction type", status=400)
             
             # Optional: Resolve category and location associations if needed.
-            if category:
-                instance.category_id = category  # Assuming the value provided matches an existing Category ID.
-            if location:
-                instance.location_id = location  # Similarly for Location.
-            
             instance.save()
+            if category:
+                instance.category.set(category)  # 'category' is a queryset from ModelMultipleChoiceField.
+            if location:
+                instance.location.set(location)  # Similarly for Location.
+            
+            instance.save()  # Save again if needed after setting many-to-many fields.
+            
             return redirect('hr_restriction_list')
     else:
         form = RestrictionForm()

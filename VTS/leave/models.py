@@ -187,8 +187,8 @@ class Restriction(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     # Restrictions can be applied broadly via Category and/or Location.
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='%(class)s_restrictions')
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, null=True, blank=True, related_name='%(class)s_restrictions')
+    category = models.ManyToManyField(Category, blank=True, related_name='%(class)s_restrictions')
+    location = models.ManyToManyField(Location, blank=True, related_name='%(class)s_restrictions')
     # Store parameter values as key-value pairs (e.g., {"X": value, "Y": value})
     parameters = models.JSONField(default=dict, blank=True)
     

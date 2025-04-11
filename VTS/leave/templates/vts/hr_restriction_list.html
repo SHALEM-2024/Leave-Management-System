@@ -25,8 +25,20 @@
           <td>{{ restr.name }}</td>
           <td>{{ restr.description }}</td>
           <td>{{ restr.parameters }}</td>
-          <td>{{ restr.category }}</td>
-          <td>{{ restr.location }}</td>
+          <td>
+            {% for cat in restr.category.all %}
+              {{ cat.name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+              No Category
+            {% endfor %}
+          </td>
+          <td>
+              {% for loc in restr.location.all %}
+                {{ loc.name }}{% if not forloop.last %}, {% endif %}
+              {% empty %}
+                No Location
+              {% endfor %}
+          </td>
         </tr>
       {% empty %}
         <tr>
