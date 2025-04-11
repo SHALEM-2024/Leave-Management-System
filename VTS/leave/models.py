@@ -139,7 +139,30 @@ class Request(models.Model):
         
         if overlapping_requests.exists():
             raise ValidationError("There is an existing leave request that overlaps with these dates. Please delete or modify the existing request first.")
-    
+
+        # Now, validate all applicable restrictions.
+        errors = []
+        # Define the list of concrete restriction classes.
+        restriction_classes = [
+            DateExclusionRestriction,
+            AdjacentDayRestriction,
+            ConsecutiveDayRestriction,
+            CoworkerRestriction,
+            DayOfWeekRestriction,
+            PeriodLimitRestriction,
+        ]
+        # For each restriction class, get restrictions that apply.
+        # Here we use a simple filter based on category.
+        for RestrictionClass in restriction_classes:
+            applicable_restrictions = RestrictionClass.objects.filter(category=self.category)
+            for restr in applicable_restrictions:
+                result = restr.validate(self)
+                if not result.validated():
+                    errors.extend(result.get_errors())
+        if errors:
+            # Raise a non-field error with all the collected messages.
+            raise ValidationError({'__all__': errors})
+        
     def save(self, *args, **kwargs):
         # Enforce validation before saving
         self.full_clean()
