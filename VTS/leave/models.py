@@ -297,8 +297,7 @@ class CoworkerRestriction(Restriction):
     """
     Ensures that a minimum number of coworkers remain scheduled.
     Expects parameters:
-      - "min_count": integer representing minimum required employees.
-      - (Optionally, additional parameters to identify the employee group.)
+      - "min_count": integer representing the minimum required number of coworkers.
     """
     def validate(self, request_obj):
         result = ValidationResult()
@@ -306,12 +305,35 @@ class CoworkerRestriction(Restriction):
         if min_count is None:
             result.add_error("Parameter 'min_count' not set.")
             return result
-        
-        # In a complete implementation, you would retrieve coworker scheduling data.
-        # Here, we'll simulate that the requirement is met.
-        coworker_count = min_count  # Dummy value for demonstration.
-        if coworker_count < min_count:
-            result.add_error("Not enough coworkers scheduled.")
+        try:
+            min_count = int(min_count)
+        except ValueError:
+            result.add_error("Parameter 'min_count' must be an integer.")
+            return result
+
+        # Helper function: For a given date, compute number of scheduled coworkers.
+        def get_scheduled_coworker_count(employee, date):
+            # Get all employees at the same location except the current employee.
+            total_at_location = employee.location.employees.exclude(id=employee.id).count()
+            # Find out how many are on leave on that specific date.
+            # Consider Requests in statuses that represent active leave (e.g., 'submitted' and 'approved').
+            on_leave = Request.objects.filter(
+                employee__location=employee.location,
+                start_date__lte=date,
+                end_date__gte=date,
+                status__in=['submitted', 'approved']
+            ).values_list('employee', flat=True).distinct().count()
+            # Scheduled coworkers are those who are at the location but not on leave.
+            return total_at_location - on_leave
+
+        current_date = request_obj.start_date
+        while current_date <= request_obj.end_date:
+            scheduled_count = get_scheduled_coworker_count(request_obj.employee, current_date)
+            if scheduled_count < min_count:
+                result.add_error(
+                    f"On {current_date}, only {scheduled_count} coworkers are scheduled, which is less than the required minimum of {min_count}."
+                )
+            current_date += datetime.timedelta(days=1)
         return result
 
 class DayOfWeekRestriction(Restriction):

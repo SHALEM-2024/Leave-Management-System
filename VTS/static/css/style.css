@@ -1,0 +1,150 @@
+/* --- Base Reset & Global Styles --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+  }
+  
+  /* --- Header & Navigation --- */
+  header {
+    background: #005f73;
+    color: #fff;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  header h1 {
+    margin-bottom: 10px;
+    font-size: 1.8em;
+  }
+  
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  
+  nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: color 0.3s ease;
+  }
+  
+  nav ul li a:hover {
+    color: #caf0f8;
+  }
+  
+  /* --- Main Content Area --- */
+  main {
+    background: #fff;
+    padding: 25px;
+    margin-top: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* --- Tables --- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  table th,
+  table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+  }
+  
+  table th {
+    background: #e9ecef;
+    font-weight: bold;
+  }
+  
+  /* --- Forms --- */
+  form {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  form input[type="text"],
+  form input[type="email"],
+  form input[type="password"],
+  form input[type="date"],
+  form textarea,
+  form select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-bottom: 15px;
+    font-size: 1em;
+  }
+  
+  form button {
+    padding: 10px 20px;
+    background: #005f73;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  form button:hover {
+    background: #0a9396;
+  }
+  
+  /* --- Footer --- */
+  footer {
+    text-align: center;
+    margin-top: 30px;
+    color: #777;
+    font-size: 0.9em;
+  }
+  
+  /* --- Responsive Adjustments --- */
+  @media (max-width: 768px) {
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    nav ul {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+
+  /* Apply a smooth transition to inputs, selects, and textareas */
+input, select, textarea {
+    transition: box-shadow 0.3s ease;
+  }
+  
+  /* When an input, select, or textarea is hovered, add a subtle shadow */
+  input:hover, select:hover, textarea:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  
