@@ -25,6 +25,10 @@ class RequestForm(forms.ModelForm):
         if user:
             self.instance.employee = user  # Ensure employee is set even for new records.
 
+        # Change default empty label for the category dropdown:
+        if 'category' in self.fields:
+            self.fields['category'].empty_label = "Choose from dropdown"
+
     def clean(self):
         # Call the parent clean method.
         cleaned_data = super().clean()
@@ -51,6 +55,19 @@ class RequestForm(forms.ModelForm):
             raise forms.ValidationError("There is an existing leave request that overlaps with these dates. Please delete or modify the existing request first.")
         """
         return cleaned_data
+
+from django.forms.widgets import Select
+
+class CustomSelect(Select):
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option_dict = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        # Check if this is the empty option (usually value is empty string)
+        if value == '':
+            # Add inline styling to make the text light gray.
+            option_dict['attrs']['style'] = 'color: #999;'
+            # Optionally, you could disable the option so it cannot be selected:
+            # option_dict['attrs']['disabled'] = 'disabled'
+        return option_dict
 
 
 # Form for HR_clerk

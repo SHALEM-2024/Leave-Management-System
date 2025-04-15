@@ -147,4 +147,10 @@ input, select, textarea {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   
+
+  /* Target the empty option by its value (usually "") */
+select option[value=""] {
+    color: #999; /* Light gray color */
+  }
+  
   
